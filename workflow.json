@@ -1,0 +1,1325 @@
+{
+  "name": "Multi-platform posting",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2fe1f7de-c81d-4e5a-8852-c7ae246ceea0",
+              "name": "=image_url",
+              "value": "={{ $json.data.url }}",
+              "type": "string"
+            },
+            {
+              "id": "5d145675-8bb9-4c4c-88f2-b13ea22f6d0d",
+              "name": "caption",
+              "value": "={{ $('On form submission').item.json.caption }}",
+              "type": "string"
+            },
+            {
+              "id": "44d293d3-8478-4c5b-b1ba-fbb873bd1380",
+              "name": "platforms",
+              "value": "={{ typeof $('On form submission').item.json.platforms === 'string' ? JSON.parse($('On form submission').item.json.platforms) : $('On form submission').item.json.platforms }}",
+              "type": "array"
+            },
+            {
+              "id": "1a47b8a1-62ae-4ae6-8b49-e73694293935",
+              "name": "alt_text",
+              "value": "={{ $('On form submission').item.json.alt_text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1072,
+        800
+      ],
+      "id": "5702a712-4371-40fa-95cf-e4e1e73dd2fb",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e0b9673c-d575-48ad-90ab-c75e9eddb1ff",
+                    "leftValue": "={{ $json.platforms }}",
+                    "rightValue": "instagram",
+                    "operator": {
+                      "type": "array",
+                      "operation": "contains",
+                      "rightType": "any"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Instagram"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "89d409ea-9160-4ad5-83d6-b1281e1a2e98",
+                    "leftValue": "={{ $json.platforms }}",
+                    "rightValue": "facebook",
+                    "operator": {
+                      "type": "array",
+                      "operation": "contains",
+                      "rightType": "any"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Facebook"
+            }
+          ]
+        },
+        "options": {
+          "allMatchingOutputs": true
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -880,
+        800
+      ],
+      "id": "21e39643-4ae5-41c3-9d7c-cf1259fc68a6",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.imgbb.com/1/upload?key={{ $env.IMGBB_API_KEY }}",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "image",
+              "inputDataFieldName": "image"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1264,
+        800
+      ],
+      "id": "5f00d5eb-a2cc-4f0e-bcd8-e230e96244dc",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\n\n// Log everything we have\nconsole.log('JSON keys:', Object.keys(item.json));\nconsole.log('Binary keys:', Object.keys(item.binary || {}));\n\nreturn [item];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1456,
+        800
+      ],
+      "id": "440b7cf3-08f7-434d-9e90-b9550b372474",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "={{ $env.IG_USER_ID }}",
+        "edge": "media_publish",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "creation_id",
+                "value": "={{ $json.id }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        240
+      ],
+      "id": "71f69ac8-c8f4-498b-9bd7-9f96eada78e7",
+      "name": "Facebook Graph API - Publish",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "smu2xpQfZtaJs5Z4",
+          "name": "Token - insta & fb - systemuser generated"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "={{ $env.IG_USER_ID }}",
+        "edge": "media",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "image_url",
+                "value": "={{ $json.image_url }}"
+              },
+              {
+                "name": "caption",
+                "value": "={{ $json.caption }}"
+              },
+              {
+                "name": "alt_text",
+                "value": "={{ $('Switch').item.json.alt_text }}"
+              }
+            ]
+          },
+          "queryParametersJson": "{}"
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        -608,
+        416
+      ],
+      "id": "28831ffb-4fde-4b4c-800d-18ccfa09b9e2",
+      "name": "Facebook Graph API - Insta Create",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "smu2xpQfZtaJs5Z4",
+          "name": "Token - insta & fb - systemuser generated"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "=❌ Post Failed on Instagram!\n\n📅 Time: {{ $now.toFormat('dd/MM/yyyy HH:mm') }}\n⚠️ Reason: {{ $json.error.message }}\n🔢 Error Code: {{ $json.error.name }}\n\nPlease check your Instagram node in n8n.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -384,
+        512
+      ],
+      "id": "28f80961-c951-4c00-adf6-aea0e25d3049",
+      "name": "Send a text message",
+      "webhookId": "c5b55585-da5b-4088-95c7-9475f44d8f11",
+      "credentials": {
+        "telegramApi": {
+          "id": "SHgvQzuc30gedZr9",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "=❌ Post Failed on Instagram!\n\n📅 Time: {{ $now.toFormat('dd/MM/yyyy HH:mm') }}\n⚠️ Reason: {{ $json.error.message }}\n🔢 Error Code: {{ $json.error.name }}\n\nPlease check your Instagram node in n8n.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -32,
+        304
+      ],
+      "id": "cb27f0ba-1f76-43f3-bd33-df5553efed9b",
+      "name": "Send a text message1",
+      "webhookId": "1ccac1c0-974d-47b7-ac4d-24904edfef40",
+      "credentials": {
+        "telegramApi": {
+          "id": "SHgvQzuc30gedZr9",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "=❌ Post Failed on Facebook!\n\n📅 Time: {{ $now.toFormat('dd/MM/yyyy HH:mm') }}\n⚠️ Reason: {{ $json.error.message }}\n🔢 Error Code: {{ $json.error.name }}\n\nPlease check your Facebook node in n8n.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -480,
+        1328
+      ],
+      "id": "574ef702-d9f5-4b45-bc3e-54747ebcb107",
+      "name": "Send a text message2",
+      "webhookId": "5731e7ab-a346-4f25-832f-e82189d99315",
+      "credentials": {
+        "telegramApi": {
+          "id": "SHgvQzuc30gedZr9",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/{{ $env.FB_PAGE_ID }}/photos?access_token={{ $env.FB_PAGE_TOKEN }}",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "url",
+              "value": "={{ $('Switch').item.json.image_url }}"
+            },
+            {
+              "name": "message",
+              "value": "={{ $('Switch').item.json.caption }}"
+            },
+            {
+              "name": "alt_text",
+              "value": "={{ $('Switch').item.json.alt_text }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -608,
+        1040
+      ],
+      "id": "604d25a3-d09b-4f5d-8aae-e96899fe16b2",
+      "name": "http - facebook graph api",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "=⚠️ Post Submission Failed!\n\n📅 Time: {{ $now.toFormat('dd/MM/yyyy HH:mm') }}\n\nPlease check the following:\n{{ !$json.caption ? '❌ Caption is missing' : '✅ Caption OK' }}\n{{ !$json.image ? '❌ Image is missing' : '✅ Image OK' }}\n{{ !$json.platforms ? '❌ No platform selected' : '✅ Platform OK' }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -2176,
+        1120
+      ],
+      "id": "3dd3572c-45af-4bc2-a09e-95dcad1834c0",
+      "name": "Send a text message3",
+      "webhookId": "a57ff695-4691-4b98-840a-9ddf3bc0311a",
+      "credentials": {
+        "telegramApi": {
+          "id": "SHgvQzuc30gedZr9",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1sQLAL7WWpvfmgMSkHev8D4gY_pIdXC7U7KIx6LmsmDQ",
+          "mode": "list",
+          "cachedResultName": "n8n - social media logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sQLAL7WWpvfmgMSkHev8D4gY_pIdXC7U7KIx6LmsmDQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sQLAL7WWpvfmgMSkHev8D4gY_pIdXC7U7KIx6LmsmDQ/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $now.toFormat('dd/MM/yyyy HH:mm') }}",
+            "Platforms": "=instagram",
+            "Caption": "={{ $('Switch').item.json.caption }}",
+            "ImageURL": "={{ $('Switch').item.json.image_url }}",
+            "Status": "✅ Success",
+            "Error": "-"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Caption",
+              "displayName": "Caption",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Platforms",
+              "displayName": "Platforms",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ImageURL",
+              "displayName": "ImageURL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Error",
+              "displayName": "Error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        0
+      ],
+      "id": "90c115b3-1ba3-4b2e-ae5a-52a0755d3338",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleApi": {
+          "id": "1jwHi2NVpS0np9IZ",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1sQLAL7WWpvfmgMSkHev8D4gY_pIdXC7U7KIx6LmsmDQ",
+          "mode": "list",
+          "cachedResultName": "n8n - social media logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sQLAL7WWpvfmgMSkHev8D4gY_pIdXC7U7KIx6LmsmDQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sQLAL7WWpvfmgMSkHev8D4gY_pIdXC7U7KIx6LmsmDQ/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $now.toFormat('dd/MM/yyyy HH:mm') }}",
+            "Platforms": "=facebook",
+            "Caption": "={{ $('Switch').item.json.caption }}",
+            "ImageURL": "={{ $('Switch').item.json.image_url }}",
+            "Status": "✅ Success",
+            "Error": "-"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Caption",
+              "displayName": "Caption",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Platforms",
+              "displayName": "Platforms",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ImageURL",
+              "displayName": "ImageURL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Error",
+              "displayName": "Error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -240,
+        1040
+      ],
+      "id": "1de466fe-06fa-4430-98b5-b074114026b7",
+      "name": "Append row in sheet2",
+      "credentials": {
+        "googleApi": {
+          "id": "1jwHi2NVpS0np9IZ",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1sQLAL7WWpvfmgMSkHev8D4gY_pIdXC7U7KIx6LmsmDQ",
+          "mode": "list",
+          "cachedResultName": "n8n - social media logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sQLAL7WWpvfmgMSkHev8D4gY_pIdXC7U7KIx6LmsmDQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sQLAL7WWpvfmgMSkHev8D4gY_pIdXC7U7KIx6LmsmDQ/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $now.toFormat('dd/MM/yyyy HH:mm') }}",
+            "Platforms": "=facebook",
+            "Caption": "={{ $('Switch').item.json.caption }}",
+            "ImageURL": "={{ $('Switch').item.json.image_url }}",
+            "Status": "❌ Failed",
+            "Error": "{{ $json.error.message }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Caption",
+              "displayName": "Caption",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Platforms",
+              "displayName": "Platforms",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ImageURL",
+              "displayName": "ImageURL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Error",
+              "displayName": "Error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -288,
+        1216
+      ],
+      "id": "0e64244a-1080-4372-995c-82255d037b30",
+      "name": "Append row in sheet3",
+      "credentials": {
+        "googleApi": {
+          "id": "1jwHi2NVpS0np9IZ",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1sQLAL7WWpvfmgMSkHev8D4gY_pIdXC7U7KIx6LmsmDQ",
+          "mode": "list",
+          "cachedResultName": "n8n - social media logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sQLAL7WWpvfmgMSkHev8D4gY_pIdXC7U7KIx6LmsmDQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sQLAL7WWpvfmgMSkHev8D4gY_pIdXC7U7KIx6LmsmDQ/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $now.toFormat('dd/MM/yyyy HH:mm') }}",
+            "Platforms": "=facebook",
+            "Caption": "={{ $('Switch').item.json.caption }}",
+            "ImageURL": "={{ $('Switch').item.json.image_url }}",
+            "Status": "❌ Failed",
+            "Error": "{{ $json.error.message }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Caption",
+              "displayName": "Caption",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Platforms",
+              "displayName": "Platforms",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ImageURL",
+              "displayName": "ImageURL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Error",
+              "displayName": "Error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -400,
+        688
+      ],
+      "id": "8b786c20-a0b6-4ecf-8726-b379ba875f81",
+      "name": "Append row in sheet4",
+      "credentials": {
+        "googleApi": {
+          "id": "1jwHi2NVpS0np9IZ",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1sQLAL7WWpvfmgMSkHev8D4gY_pIdXC7U7KIx6LmsmDQ",
+          "mode": "list",
+          "cachedResultName": "n8n - social media logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sQLAL7WWpvfmgMSkHev8D4gY_pIdXC7U7KIx6LmsmDQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sQLAL7WWpvfmgMSkHev8D4gY_pIdXC7U7KIx6LmsmDQ/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $now.toFormat('dd/MM/yyyy HH:mm') }}",
+            "Platforms": "=facebook",
+            "Caption": "={{ $('Switch').item.json.caption }}",
+            "ImageURL": "={{ $('Switch').item.json.image_url }}",
+            "Status": "❌ Failed",
+            "Error": "{{ $json.error.message }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Caption",
+              "displayName": "Caption",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Platforms",
+              "displayName": "Platforms",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ImageURL",
+              "displayName": "ImageURL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Error",
+              "displayName": "Error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -96,
+        480
+      ],
+      "id": "78c07cbc-ec95-428a-a710-ae0059e84bdf",
+      "name": "Append row in sheet5",
+      "credentials": {
+        "googleApi": {
+          "id": "1jwHi2NVpS0np9IZ",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resume": "specificTime",
+        "dateTime": "={{ $json.scheduled_date }}"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -1952,
+        512
+      ],
+      "id": "1b6fc8b5-0d96-471e-87b8-688c266ae1bc",
+      "name": "Wait - specific",
+      "webhookId": "48f145d5-13a7-4782-83b0-3fccff43ad21"
+    },
+    {
+      "parameters": {
+        "amount": "={{ $json.delay_minutes }}",
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -1856,
+        736
+      ],
+      "id": "7056a401-bacc-4db0-8adc-ef523df0fc02",
+      "name": "Wait - has delay",
+      "webhookId": "840a4dcc-f75f-472f-b14c-d39038797b5a"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3570f8a7-b4dc-4385-90bf-d433d60a0fbf",
+              "leftValue": "={{ $json.scheduled_time }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2240,
+        640
+      ],
+      "id": "17a00f65-e7aa-4b5d-8a27-b785423c0006",
+      "name": "If - scheduled time"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a3f29c92-2187-4dd2-b1da-5738392ab58b",
+              "leftValue": "={{ $json.delay_minutes }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2032,
+        832
+      ],
+      "id": "d8533b56-dcb2-4312-a864-80ede3594125",
+      "name": "If - delay time"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ae4de196-df98-4ec4-acf7-35e6c352f4de",
+              "leftValue": "={{ $json.caption }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "c060b7a3-d29d-4625-83db-1dd47146cf3a",
+              "leftValue": "={{ $json.image[0].filename }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "833ae515-57de-48f7-bd61-000ac87fe869",
+              "leftValue": "={{ $json.platforms[0] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "688958b4-e62d-4776-959a-41c5077cdc91",
+              "leftValue": "={{ $json.caption.length }}",
+              "rightValue": 2200,
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": false
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2528,
+        816
+      ],
+      "id": "ee187858-2d43-406b-8001-0631a0df2fc9",
+      "name": "If - form validation"
+    },
+    {
+      "parameters": {
+        "formTitle": "Social Media Post",
+        "formDescription": "Provide all the required info.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "caption",
+              "fieldType": "textarea",
+              "placeholder": "Provide detail info, Maximum 2,200 characters for Instagram.",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "image",
+              "fieldType": "file",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "platforms",
+              "fieldType": "checkbox",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "instagram"
+                  },
+                  {
+                    "option": "facebook"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "alt_text",
+              "placeholder": "Describe the image for accessibility (max 1000 characters)"
+            },
+            {
+              "fieldLabel": "scheduled_date",
+              "fieldType": "date"
+            },
+            {
+              "fieldLabel": "delay_minutes",
+              "fieldType": "number",
+              "placeholder": "Type in minutes, e.g. 1,12,32,54"
+            }
+          ]
+        },
+        "options": {
+          "respondWithOptions": {
+            "values": {
+              "formSubmittedText": "✅ Your post has been submitted successfully!  We'll take care of the rest. Your content will be posted shortly."
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -2784,
+        784
+      ],
+      "id": "c09bb070-6329-4811-bbbe-e6a20bd1985f",
+      "name": "On form submission",
+      "webhookId": "1cf05e19-8d3e-49d7-8301-0e5708056977"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Facebook Graph API - Insta Create",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "http - facebook graph api",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Facebook Graph API - Insta Create": {
+      "main": [
+        [
+          {
+            "node": "Facebook Graph API - Publish",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Append row in sheet4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Facebook Graph API - Publish": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Append row in sheet5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "http - facebook graph api": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Append row in sheet3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait - specific": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait - has delay": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If - scheduled time": {
+      "main": [
+        [
+          {
+            "node": "Wait - specific",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If - delay time",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If - delay time": {
+      "main": [
+        [
+          {
+            "node": "Wait - has delay",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If - form validation": {
+      "main": [
+        [
+          {
+            "node": "If - scheduled time",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "If - form validation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "d78936e4-1848-4943-ac35-354294f7a57c",
+  "meta": {
+    "instanceId": "e8a8643d8a7f21b6c3417eceb3b617297ef82a787a97f71e0ea6371671e29cd5"
+  },
+  "id": "MqNORIsuL6zx4UiR",
+  "tags": []
+}
