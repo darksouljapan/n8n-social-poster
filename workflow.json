@@ -170,8 +170,8 @@
       "type": "n8n-nodes-base.facebookGraphApi",
       "typeVersion": 1,
       "position": [
-        -320,
-        240
+        -160,
+        224
       ],
       "id": "71f69ac8-c8f4-498b-9bd7-9f96eada78e7",
       "name": "Facebook Graph API - Publish",
@@ -212,8 +212,8 @@
       "type": "n8n-nodes-base.facebookGraphApi",
       "typeVersion": 1,
       "position": [
-        -608,
-        416
+        -640,
+        368
       ],
       "id": "28831ffb-4fde-4b4c-800d-18ccfa09b9e2",
       "name": "Facebook Graph API - Insta Create",
@@ -256,8 +256,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -32,
-        304
+        208,
+        288
       ],
       "id": "cb27f0ba-1f76-43f3-bd33-df5553efed9b",
       "name": "Send a text message1",
@@ -439,8 +439,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        0,
-        0
+        192,
+        48
       ],
       "id": "90c115b3-1ba3-4b2e-ae5a-52a0755d3338",
       "name": "Append row in sheet",
@@ -859,8 +859,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        -96,
-        480
+        112,
+        496
       ],
       "id": "78c07cbc-ec95-428a-a710-ae0059e84bdf",
       "name": "Append row in sheet5",
@@ -1098,6 +1098,18 @@
       "id": "c09bb070-6329-4811-bbbe-e6a20bd1985f",
       "name": "On form submission",
       "webhookId": "1cf05e19-8d3e-49d7-8301-0e5708056977"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -384,
+        240
+      ],
+      "id": "9f285d46-783d-407e-8393-16914ca5727c",
+      "name": "Wait",
+      "webhookId": "178c9383-1165-4f56-9c74-d3865c6aa6b6"
     }
   ],
   "pinData": {},
@@ -1157,7 +1169,7 @@
       "main": [
         [
           {
-            "node": "Facebook Graph API - Publish",
+            "node": "Wait",
             "type": "main",
             "index": 0
           }
@@ -1308,6 +1320,17 @@
           }
         ]
       ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Facebook Graph API - Publish",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -1316,7 +1339,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "d78936e4-1848-4943-ac35-354294f7a57c",
+  "versionId": "d2f9d813-fbea-414a-a643-bb9690a77b86",
   "meta": {
     "instanceId": "e8a8643d8a7f21b6c3417eceb3b617297ef82a787a97f71e0ea6371671e29cd5"
   },
