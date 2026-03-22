@@ -6,6 +6,9 @@ services:
     volumes:
       - ./n8n_data/_data:/home/node/.n8n
     environment:
+      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
+      - CLOUDINARY_UPLOAD_PRESET=${UPLOAD_PRESET_NAME}
+      - WEBHOOK_URL=http://localhost:5678
       - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
       - IMGBB_API_KEY=${IMGBB_API_KEY}
       - FB_PAGE_TOKEN=${FB_PAGE_TOKEN}

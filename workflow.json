@@ -6,8 +6,14 @@
         "assignments": {
           "assignments": [
             {
+              "id": "eaa3b674-8453-4500-b01f-8f3dba054762",
+              "name": "image_url_insta",
+              "value": "={{ $('Cloudinary HTTP Request').item.json.secure_url }}",
+              "type": "string"
+            },
+            {
               "id": "2fe1f7de-c81d-4e5a-8852-c7ae246ceea0",
-              "name": "=image_url",
+              "name": "=image_url_fb",
               "value": "={{ $json.data.url }}",
               "type": "string"
             },
@@ -113,38 +119,12 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "=https://api.imgbb.com/1/upload?key={{ $env.IMGBB_API_KEY }}",
-        "sendBody": true,
-        "contentType": "multipart-form-data",
-        "bodyParameters": {
-          "parameters": [
-            {
-              "parameterType": "formBinaryData",
-              "name": "image",
-              "inputDataFieldName": "image"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        -1264,
-        800
-      ],
-      "id": "5f00d5eb-a2cc-4f0e-bcd8-e230e96244dc",
-      "name": "HTTP Request"
-    },
-    {
-      "parameters": {
         "jsCode": "const item = $input.first();\n\n// Log everything we have\nconsole.log('JSON keys:', Object.keys(item.json));\nconsole.log('Binary keys:', Object.keys(item.binary || {}));\n\nreturn [item];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1456,
+        -1568,
         800
       ],
       "id": "440b7cf3-08f7-434d-9e90-b9550b372474",
@@ -161,7 +141,7 @@
             "parameter": [
               {
                 "name": "creation_id",
-                "value": "={{ $json.id }}"
+                "value": "={{ $('Facebook Graph API - Insta Create').item.json.id }}"
               }
             ]
           }
@@ -194,7 +174,7 @@
             "parameter": [
               {
                 "name": "image_url",
-                "value": "={{ $json.image_url }}"
+                "value": "={{ $json.image_url_insta }}"
               },
               {
                 "name": "caption",
@@ -300,7 +280,7 @@
           "parameters": [
             {
               "name": "url",
-              "value": "={{ $('Switch').item.json.image_url }}"
+              "value": "={{ $('Switch').item.json.image_url_fb }}"
             },
             {
               "name": "message",
@@ -1049,6 +1029,7 @@
             {
               "fieldLabel": "image",
               "fieldType": "file",
+              "acceptFileTypes": "Please upload JPEG/JPG images only. PNG is not supported by Instagram.",
               "requiredField": true
             },
             {
@@ -1110,6 +1091,75 @@
       "id": "9f285d46-783d-407e-8393-16914ca5727c",
       "name": "Wait",
       "webhookId": "178c9383-1165-4f56-9c74-d3865c6aa6b6"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.cloudinary.com/v1_1/{{ $env.CLOUDINARY_CLOUD_NAME }}/image/upload",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "image"
+            },
+            {
+              "name": "upload_preset",
+              "value": "={{ $env.CLOUDINARY_UPLOAD_PRESET }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1376,
+        800
+      ],
+      "id": "5f00d5eb-a2cc-4f0e-bcd8-e230e96244dc",
+      "name": "Cloudinary HTTP Request"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.imgbb.com/1/upload?key={{ $env.IMGBB_API_KEY }}",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "image",
+              "inputDataFieldName": "image"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1056,
+        1184
+      ],
+      "id": "d9355f13-d166-439c-8bfb-a6a017660f90",
+      "name": "imgbb HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const cloudinaryOutput = $input.first();\nconst originalBinary = $('Code in JavaScript').first().binary;\n\ncloudinaryOutput.binary = originalBinary;\n\nreturn [cloudinaryOutput];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1360,
+        1184
+      ],
+      "id": "442f03a6-062b-4314-92e9-7e697e6b60c1",
+      "name": "Restore Binary Code"
     }
   ],
   "pinData": {},
@@ -1143,22 +1193,11 @@
         ]
       ]
     },
-    "HTTP Request": {
-      "main": [
-        [
-          {
-            "node": "Edit Fields",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Code in JavaScript": {
       "main": [
         [
           {
-            "node": "HTTP Request",
+            "node": "Cloudinary HTTP Request",
             "type": "main",
             "index": 0
           }
@@ -1331,6 +1370,39 @@
           }
         ]
       ]
+    },
+    "Cloudinary HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Restore Binary Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "imgbb HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restore Binary Code": {
+      "main": [
+        [
+          {
+            "node": "imgbb HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -1339,7 +1411,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "d2f9d813-fbea-414a-a643-bb9690a77b86",
+  "versionId": "da76e671-7b65-4e9c-a5a1-7d8055f2e0df",
   "meta": {
     "instanceId": "e8a8643d8a7f21b6c3417eceb3b617297ef82a787a97f71e0ea6371671e29cd5"
   },
